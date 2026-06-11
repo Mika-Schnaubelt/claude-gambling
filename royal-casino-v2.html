@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Royal Casino — Las Vegas Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#c9a84c;--gold-l:#f0d080;--gold-d:#8a6020;
+  --dark:#06090e;--dark2:#0d1118;--dark3:#141a22;
+  --green:#0d4a2a;--felt:#1a6a3a;
+  --red:#cc2233;--blue:#334488;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);}
+body{font-family:'Courier Prime',monospace;color:#eee;cursor:default;}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 40%,rgba(0,0,0,.75) 100%);}
+.scr{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;overflow-y:auto;overflow-x:hidden;opacity:0;pointer-events:none;transition:opacity .45s cubic-bezier(.4,0,.2,1);visibility:hidden;}
+.scr.on{opacity:1;pointer-events:all;visibility:visible;}
+.orn{display:flex;align-items:center;gap:12px;color:rgba(201,168,76,.45);font-size:.65rem;letter-spacing:.25em;white-space:nowrap;}
+.orn::before,.orn::after{content:'';flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.4),transparent);min-width:40px;}
+#scr-menu{justify-content:center;padding:20px;}
+.menu-wrap{display:flex;flex-direction:column;align-items:center;gap:26px;max-width:440px;width:100%;}
+.logo-badge{display:flex;gap:18px;font-size:1.6rem;color:rgba(201,168,76,.5);animation:suitPulse 3s ease-in-out infinite;}
+@keyframes suitPulse{0%,100%{color:rgba(201,168,76,.35);}50%{color:rgba(201,168,76,.8);}}
+.logo-title{font-family:'Cinzel Decorative',serif;font-size:clamp(2rem,7vw,3.6rem);font-weight:700;color:var(--gold);letter-spacing:.12em;text-align:center;text-shadow:0 0 60px rgba(201,168,76,.5),0 3px 8px rgba(0,0,0,.9);line-height:1.1;animation:logoGlow 4s ease-in-out infinite;}
+@keyframes logoGlow{0%,100%{text-shadow:0 0 40px rgba(201,168,76,.4),0 3px 8px rgba(0,0,0,.9);}50%{text-shadow:0 0 80px rgba(201,168,76,.7),0 0 30px rgba(201,168,76,.4),0 3px 8px rgba(0,0,0,.9);}}
+.logo-sub{font-family:'Cinzel',serif;font-size:.7rem;color:rgba(201,168,76,.5);letter-spacing:.45em;text-align:center;margin-top:4px;}
+.menu-btns{display:flex;flex-direction:column;gap:10px;width:100%;}
+.menu-btn{position:relative;padding:14px 32px;width:100%;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.04));border:1px solid rgba(201,168,76,.35);color:var(--gold-l);font-family:'Cinzel',serif;font-size:.95rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .28s;overflow:hidden;}
+.menu-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(201,168,76,.1),transparent);transform:translateX(-100%);transition:transform .5s;}
+.menu-btn:hover::before{transform:translateX(100%);}
+.menu-btn:hover{background:linear-gradient(135deg,rgba(201,168,76,.22),rgba(201,168,76,.08));border-color:var(--gold);color:#fff;box-shadow:0 0 24px rgba(201,168,76,.25),0 4px 12px rgba(0,0,0,.4);transform:translateY(-2px);}
+.menu-btn:active{transform:translateY(0);}
+.menu-btn-icon{margin-right:12px;font-size:1.1rem;}
+.menu-footer{font-size:.6rem;color:rgba(201,168,76,.28);letter-spacing:.2em;text-align:center;text-transform:uppercase;}
+
+#scr-select{justify-content:center;padding:30px 20px;}
+.sel-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.2rem,4vw,2rem);color:var(--gold);letter-spacing:.15em;text-align:center;margin-bottom:8px;}
+.game-card{position:relative;padding:20px 12px;background:linear-gradient(160deg,rgba(201,168,76,.1),rgba(0,0,0,.5));border:1px solid rgba(201,168,76,.3);border-radius:4px;cursor:pointer;transition:all .3s;text-align:center;overflow:hidden;}
+.game-card:hover{border-color:var(--gold);transform:translateY(-4px) scale(1.02);box-shadow:0 0 40px rgba(201,168,76,.2),0 16px 40px rgba(0,0,0,.5);}
+.gc-icon{font-size:2.4rem;margin-bottom:8px;display:block;filter:drop-shadow(0 0 12px rgba(201,168,76,.5));}
+.gc-name{font-family:'Cinzel',serif;font-size:.95rem;font-weight:700;color:var(--gold-l);letter-spacing:.1em;margin-bottom:4px;}
+.gc-desc{font-size:.65rem;color:rgba(255,255,255,.45);letter-spacing:.05em;}
+.gc-tag{display:inline-block;margin-top:10px;padding:3px 10px;border:1px solid rgba(201,168,76,.35);color:rgba(201,168,76,.7);font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;}
+
+.hud{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 16px;background:rgba(0,0,0,.55);border-bottom:1px solid rgba(201,168,76,.2);flex-shrink:0;}
+.hud-back{padding:6px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.3);color:rgba(201,168,76,.7);font-family:'Cinzel',serif;font-size:.65rem;font-weight:700;cursor:pointer;letter-spacing:.12em;transition:all .2s;}
+.hud-back:hover{background:rgba(201,168,76,.12);color:var(--gold');border-color:var(--gold);}
+.hud-logo{font-family:'Cinzel Decorative',serif;font-size:.85rem;color:rgba(201,168,76,.55);letter-spacing:.12em;}
+.hud-right{display:flex;gap:16px;align-items:center;}
+.hud-item{text-align:right;}
+.hud-lbl{font-size:.55rem;color:rgba(201,168,76,.4);letter-spacing:.2em;text-transform:uppercase;}
+.hud-val{font-size:1rem;color:var(--gold);font-weight:700;}
+
+.back-btn{margin-top:14px;padding:9px 24px;background:transparent;border:1px solid rgba(201,168,76,.3);color:rgba(201,168,76,.6);font-family:'Cinzel',serif;font-size:.75rem;font-weight:700;letter-spacing:.15em;cursor:pointer;transition:all .22s;}
+.back-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* CARDS CSS WITH REVEAL GLITCH FIX */
+.card{width:66px;height:98px;perspective:600px;flex-shrink:0;}
+.card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .4s cubic-bezier(.4,0,.2,1);border-radius:6px;}
+.c-front,.c-back{position:absolute;inset:0;border-radius:6px;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.c-front{background:#fdfcf8;display:flex;flex-direction:column;padding:4px;box-shadow:0 4px 16px rgba(0,0,0,.55);opacity: 1; z-index: 2;}
+.c-back{background:linear-gradient(140deg,#18082e,#280a18);transform:rotateY(180deg);border:2px solid rgba(201,168,76,.25);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.55);z-index: 1;}
+.c-back::after{content:'♦';color:rgba(201,168,76,.25);font-size:2rem;}
+
+/* When flipped class is present, the card inner rotates 180deg. 
+To avoid preview reveal when concealed, we set the back to rotateY(0deg) and front to rotateY(180deg) inside card definition */
+.card.concealed .c-front { display: none !important; opacity: 0 !important; }
+.card.concealed .c-back { transform: rotateY(0deg); }
+
+.card.revealed .c-front { display: flex !important; opacity: 1 !important; transform: rotateY(0deg); }
+.card.revealed .c-back { transform: rotateY(180deg); }
+
+.c-corner{font-size:11px;font-weight:700;line-height:1.2;font-family:'Courier Prime',monospace;}
+.c-corner.b{margin-top:auto;align-self:flex-end;transform:rotate(180deg);}
+.c-center{flex:1;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.red{color:#c82233;}.blk{color:#111;}
+
+/* BLACKJACK */
+#scr-bj{justify-content:flex-start;}
+.bj-body{flex:1;display:flex;flex-direction:column;align-items:center;width:100%;padding:16px;}
+.bj-scene{perspective:1300px;max-width:860px;width:100%;}
+.bj-table{transform:rotateX(16deg);transform-origin:center 85%;background:radial-gradient(ellipse at 50% 40%,#1e7a42 0%,#0f5028 45%,#072a18 100%);border-radius:180px/70px;padding:32px 44px 40px;border:6px solid #8a6020;box-shadow:0 0 0 2px #c9a84c,0 0 0 8px #4a3010,0 24px 70px rgba(0,0,0,.85),inset 0 0 120px rgba(0,0,0,.25);position:relative;min-height:380px;}
+.bj-table::before{content:'';position:absolute;inset:0;border-radius:inherit;background-image:radial-gradient(circle,rgba(255,255,255,.022) 1px,transparent 1px);background-size:8px 8px;pointer-events:none;}
+.bj-table-lbl{text-align:center;font-family:'Cinzel',serif;color:rgba(201,168,76,.4);font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;margin-bottom:6px;}
+.bj-hand{display:flex;justify-content:center;align-items:flex-end;gap:8px;min-height:100px;flex-wrap:wrap;margin-bottom:6px;}
+.bj-score{text-align:center;color:var(--gold-l);font-size:.95rem;font-weight:700;margin-bottom:12px;text-shadow:0 0 12px rgba(201,168,76,.5);}
+.bj-ctrl{margin-top:16px;text-align:center;width:100%;max-width:860px;}
+.chips{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-bottom:12px;}
+.chip{width:48px;height:48px;border-radius:50%;border:3px dashed rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:700;cursor:pointer;transition:all .18s;user-select:none;box-shadow:0 4px 12px rgba(0,0,0,.45),inset 0 1px 1px rgba(255,255,255,.15);}
+.chip:hover{transform:translateY(-5px) scale(1.1);}
+.c10 {background:radial-gradient(circle at 38% 38%,#e44,#a00);color:#fff;}
+.c25 {background:radial-gradient(circle at 38% 38%,#55e,#009);color:#fff;}
+.c50 {background:radial-gradient(circle at 38% 38%,#4c4,#080);color:#fff;}
+.c100{background:radial-gradient(circle at 38% 38%,#888,#333);color:#fff;}
+.acts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+.btn{padding:10px 22px;border:1px solid;font-family:'Courier Prime',monospace;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .18s;letter-spacing:.05em;text-transform:uppercase;}
+.btn:hover{filter:brightness(1.3);transform:translateY(-2px);}
+.btn:disabled{opacity:.25;cursor:not-allowed;transform:none;}
+.btn-g {background:linear-gradient(135deg,#c9a84c,#8a6a20);border-color:var(--gold);color:#fff;}
+.btn-gr{background:linear-gradient(135deg,#1a6a3a,#0a3820);border-color:#4a9a6a;color:#8de8aa;}
+.btn-r {background:linear-gradient(135deg,#5a1a1a,#3a0808);border-color:#aa4444;color:#ffaaaa;}
+.btn-b {background:linear-gradient(135deg,#1a2a5a,#0a1030);border-color:#4466cc;color:#aabbff;}
+
+/* SLOTS */
+#scr-slots{justify-content:flex-start;}
+.slots-body{flex:1;display:flex;flex-direction:column;align-items:center;width:100%;padding:16px;}
+.slot-machine{max-width:440px;width:100%;background:linear-gradient(165deg,#3c3c3c,#1a1a1a 55%,#2a2a2a);border-radius:22px;padding:26px;border:3px solid #555;box-shadow:0 32px 70px rgba(0,0,0,.85);position:relative;}
+.reels-box{display:flex;gap:8px;justify-content:center;background:#000;padding:12px;border-radius:12px;border:2px solid #2a2a2a;margin-bottom:18px;position:relative;height:140px;}
+.reel-wrap{width:86px;height:114px;overflow:hidden;border-radius:6px;background:#111;border:2px solid #222;position:relative;display:flex;align-items:center;justify-content:center;font-size:2.8rem;}
+
+/* RIDE THE BUS */
+#scr-rtb{justify-content:flex-start;}
+.rtb-body{flex:1;display:flex;flex-direction:column;align-items:center;width:100%;padding:16px;gap:14px;}
+.rtb-stage{font-family:'Cinzel',serif;font-size:.75rem;color:rgba(201,168,76,.5);letter-spacing:.3em;text-align:center;text-transform:uppercase;}
+.rtb-question{font-family:'Cinzel',serif;font-size:clamp(1rem,3.5vw,1.4rem);color:var(--gold-l);text-align:center;letter-spacing:.1em;min-height:2.5rem;display:flex;align-items:center;justify-content:center;}
+.rtb-cards-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;min-height:110px;align-items:center;}
+.rtb-answer-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;}
+.rtb-bus{background:rgba(0,0,0,.45);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:18px 24px;max-width:600px;width:100%;text-align:center;}
+.rtb-phase-indicators{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;}
+.rtb-phase-dot{width:28px;height:28px;border-radius:50%;border:2px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:.65rem;}
+.rtb-phase-dot.active{border-color:var(--gold);background:rgba(201,168,76,.2);color:var(--gold);}
+.rtb-phase-dot.done{border-color:#4de87a;background:rgba(77,232,122,.15);color:#4de87a;}
+.rtb-phase-dot.fail{border-color:#ff4455;background:rgba(255,68,85,.15);color:#ff4455;}
+
+/* DOUBLE OR NOTHING */
+#scr-don{justify-content:flex-start;}
+.don-streak-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;border:2px solid rgba(201,168,76,.3);transition:all .3s;}
+.don-streak-dot.win{border-color:#4de87a;background:rgba(77,232,122,.18);box-shadow:0 0 12px rgba(77,232,122,.4);}
+.don-streak-dot.pending{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.1);}
+.don-coin{width:100px;height:100px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffd700,#b8860b);border:4px solid #c9a84c;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:20px auto;box-shadow:0 8px 20px rgba(0,0,0,0.6);transition:transform 0.1s;}
+.don-coin.spinning{animation:coinSpin 0.15s linear infinite;}
+@keyframes coinSpin{0%{transform:rotateY(0deg);}100%{transform:rotateY(180deg);}}
+
+/* FLAPPY BIRD */
+#scr-flappy{justify-content:flex-start;}
+.flappy-container{position:relative;width:100%;max-width:480px;height:440px;background:linear-gradient(to bottom,#3a1c5c,#100526);border:2px solid var(--gold);border-radius:8px;overflow:hidden;}
+#flappy-canvas{display:block;width:100%;height:100%;background:transparent;}
+.flappy-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center;}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(6,9,16,.92);border:1px solid var(--gold);color:var(--gold);padding:10px 22px;border-radius:3px;font-size:.85rem;transition:transform .38s;z-index:9999;pointer-events:none;}
+.toast.on{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="vignette"></div>
+
+<!-- MAIN MENU -->
+<div class="scr on" id="scr-menu">
+  <div class="menu-wrap">
+    <div class="logo-badge">♠ ♥ ♣ ♦</div>
+    <div>
+      <h1 class="logo-title">ROYAL CASINO</h1>
+      <div class="logo-sub">LAS VEGAS EDITION</div>
+    </div>
+    <div class="orn" style="width:100%">Mika's Premium Suite</div>
+    <div class="menu-btns">
+      <button class="menu-btn" onclick="gotoScreen('scr-select')"><span class="menu-btn-icon">🎰</span>Spielen starten</button>
+      <button class="menu-btn" onclick="gotoScreen('scr-credits')"><span class="menu-btn-icon">★</span>Credits</button>
+    </div>
+    <div class="menu-footer">Royal Casino Studios · v2.1.0 · 2026</div>
+  </div>
+</div>
+
+<!-- CATEGORY SELECT -->
+<div class="scr" id="scr-select">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;gap:22px;width:100%;">
+    <div class="sel-title">Spiel wählen</div>
+    <div class="orn" style="width:100%;max-width:500px">Casino & Minispiele</div>
+    <div style="display:flex;flex-direction:column;gap:14px;width:100%;max-width:440px;">
+      <div class="game-card" onclick="gotoScreen('scr-rtb')">
+        <span class="gc-icon">🚌</span>
+        <div class="gc-name">Ride the Bus</div>
+        <div class="gc-desc">Triff die richtige Entscheidung über 4 Stufen!</div>
+      </div>
+      <div class="game-card" onclick="gotoScreen('scr-don')">
+        <span class="gc-icon">⚡</span>
+        <div class="gc-name">Double or Nothing</div>
+        <div class="gc-desc">Verdopple oder verliere alles beim Münzwurf!</div>
+      </div>
+      <div class="game-card" onclick="gotoScreen('scr-flappy')">
+        <span class="gc-icon">🐦</span>
+        <div class="gc-name">Flappy Bird Casino</div>
+        <div class="gc-desc">Weiche Rohren aus und gewinne echtes Spielgeld!</div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="gotoScreen('scr-menu')">← Hauptmenü</button>
+  </div>
+</div>
+
+<!-- RIDE THE BUS -->
+<div class="scr" id="scr-rtb">
+  <div class="hud">
+    <button class="hud-back" onclick="gotoScreen('scr-select')">← Menü</button>
+    <div class="hud-logo">🚌 Ride the Bus</div>
+    <div class="hud-right">
+      <div class="hud-item"><div class="hud-lbl">Einsatz</div><div class="hud-val" id="hud-rtb-bet">$ 0</div></div>
+      <div class="hud-item"><div class="hud-lbl">Guthaben</div><div class="hud-val" id="hud-rtb-bal">$ 1.000</div></div>
+    </div>
+  </div>
+  <div class="rtb-body">
+    <div class="rtb-bus">
+      <div class="rtb-phase-indicators" id="rtb-indicators"></div>
+      <div class="rtb-stage" id="rtb-stage-lbl">Stufe 1/4</div>
+      <div class="rtb-question" id="rtb-question-text">Wähle deinen Einsatz zum Starten!</div>
+      
+      <div class="rtb-cards-row" id="rtb-cards-container"></div>
+      
+      <div class="rtb-answer-btns" id="rtb-answer-btns"></div>
+      <div class="rtb-info" id="rtb-info" style="margin-top:10px;"></div>
+    </div>
+    
+    <div class="rtb-bet-row" id="rtb-bet-phase">
+      <div class="chips">
+        <div class="chip c10" onclick="rtbAddBet(10)">$10</div>
+        <div class="chip c25" onclick="rtbAddBet(25)">$25</div>
+        <div class="chip c50" onclick="rtbAddBet(50)">$50</div>
+        <div class="chip c100" onclick="rtbAddBet(100)">$100</div>
+      </div>
+      <div class="acts">
+        <button class="btn btn-r" onclick="rtbClearBet()">Reset</button>
+        <button class="btn btn-gr" id="rtb-start-btn" onclick="rtbStart()" disabled>Los! ▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DOUBLE OR NOTHING -->
+<div class="scr" id="scr-don">
+  <div class="hud">
+    <button class="hud-back" onclick="gotoScreen('scr-select')">← Menü</button>
+    <div class="hud-logo">⚡ Double or Nothing</div>
+    <div class="hud-right">
+      <div class="hud-item"><div class="hud-lbl">Einsatz</div><div class="hud-val" id="hud-don-bet">$ 0</div></div>
+      <div class="hud-item"><div class="hud-lbl">Guthaben</div><div class="hud-val" id="hud-don-bal">$ 1.000</div></div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;width:100%;padding:16px;gap:14px;">
+    <div style="width:100%;max-width:500px;background:rgba(0,0,0,.55);border:1px solid rgba(201,168,76,.25);border-radius:10px;padding:22px;text-align:center;">
+      <div id="don-streak-display" style="display:flex;justify-content:center;gap:8px;margin-bottom:12px;"></div>
+      <div class="rtb-stage" id="don-stage-lbl">Streak: 0/5</div>
+      <div class="rtb-question" id="don-msg">Setze einen Betrag und wirf die Münze!</div>
+      
+      <div class="don-coin" id="don-coin-element">🪙</div>
+      <div id="don-pot-display" class="bet-val-big" style="color:var(--gold-l); font-size:1.3rem; margin:10px 0;">Pot: $ 0</div>
+      
+      <div class="rtb-answer-btns" id="don-ctrls">
+        <button class="btn btn-g" id="don-head-btn" onclick="donFlip('heads')" disabled>Kopf</button>
+        <button class="btn btn-b" id="don-tail-btn" onclick="donFlip('tails')" disabled>Zahl</button>
+        <button class="btn btn-gr" id="don-cashout-btn" onclick="donCashout()" style="display:none;">Cashout 💰</button>
+      </div>
+    </div>
+    
+    <div class="rtb-bet-row" id="don-bet-phase">
+      <div class="chips">
+        <div class="chip c10" onclick="donAddBet(10)">$10</div>
+        <div class="chip c25" onclick="donAddBet(25)">$25</div>
+        <div class="chip c50" onclick="donAddBet(50)">$50</div>
+        <div class="chip c100" onclick="donAddBet(100)">$100</div>
+      </div>
+      <div class="acts">
+        <button class="btn btn-r" onclick="donClearBet()">Reset</button>
+        <button class="btn btn-gr" id="don-start-btn" onclick="donStart()" disabled>Spiel Starten ▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FLAPPY BIRD CASINO -->
+<div class="scr" id="scr-flappy">
+  <div class="hud">
+    <button class="hud-back" onclick="gotoScreen('scr-select')">← Menü</button>
+    <div class="hud-logo">🐦 Flappy Bird Casino</div>
+    <div class="hud-right">
+      <div class="hud-item"><div class="hud-lbl">Einsatz</div><div class="hud-val">$ 25</div></div>
+      <div class="hud-item"><div class="hud-lbl">Guthaben</div><div class="hud-val" id="hud-flappy-bal">$ 1.000</div></div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:16px;gap:12px;">
+    <div class="flappy-container">
+      <canvas id="flappy-canvas"></canvas>
+      <div class="flappy-overlay" id="flappy-overlay">
+        <h2 style="font-family:'Cinzel',serif; color:var(--gold);">Flappy Bird Casino</h2>
+        <p style="font-size:0.75rem; color:#ccc; max-width:320px;">Kosten pro Flug: <strong>$25</strong>.<br>Jedes passierte Rohr bringt dir <strong>+$10</strong>!</p>
+        <button class="btn btn-gr" onclick="flappyStartGame()" id="flappy-action-btn">Flug Starten ($25)</button>
+      </div>
+    </div>
+    <div style="font-size:0.75rem; color:rgba(255,255,255,0.4);" id="flappy-score-live">Score: 0 | Gewinn: $0</div>
+  </div>
+</div>
+
+<!-- CREDITS -->
+<div class="scr" id="scr-credits">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;">
+    <div class="credits-box">
+      <div class="credits-logo">Royal Casino</div>
+      <div class="credits-version">Las Vegas Edition · v2.1.0 · 2026</div>
+      <div class="orn" style="width:100%">Team</div>
+      <div class="credits-section" style="background:rgba(0,0,0,0.4); border:1px solid rgba(201,168,76,0.2); padding:12px; width:100%; border-radius:4px; margin-bottom:10px;">
+        <div class="cr-role">Entwickler &amp; Game Designer</div>
+        <div class="cr-name">Mika</div>
+      </div>
+      <div class="credits-section" style="background:rgba(0,0,0,0.4); border:1px solid rgba(201,168,76,0.2); padding:12px; width:100%; border-radius:4px;">
+        <div class="cr-role">KI-Entwicklungsassistenz</div>
+        <div class="cr-name">Gemini &amp; Claude AI</div>
+      </div>
+      <button class="back-btn" onclick="gotoScreen('scr-menu')">← Zurück</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* GLOBAL STATE */
+let balances = { rtb: 1000, don: 1000, flappy: 1000 };
+let startBal = 1000;
+
+function fmt(n){ return '$ ' + n.toLocaleString('de-DE'); }
+
+function toast(msg, color='#c9a84c') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = color;
+  t.style.color = color;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2500);
+}
+
+function gotoScreen(id) {
+  document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
+  const target = document.getElementById(id);
+  if(target) target.classList.add('on');
+  
+  // Refresh HUD displays
+  if(id==='scr-rtb') { rtbUpdateHUD(); }
+  if(id==='scr-don') { donUpdateHUD(); }
+  if(id==='scr-flappy') { flappyUpdateHUD(); flappyInitEngine(); }
+}
+
+/* CARD HELPER FUNCTIONS WITH GLITCH MITIGATION */
+function isRed(suit) { return suit === '♥' || suit === '♦'; }
+
+function createCardDOM(card, hidden=false) {
+  const cDiv = document.createElement('div');
+  cDiv.className = 'card ' + (hidden ? 'concealed' : 'revealed');
+  
+  const inner = document.createElement('div');
+  inner.className = 'card-inner';
+  
+  const front = document.createElement('div');
+  front.className = 'c-front ' + (isRed(card.s) ? 'red' : 'blk');
+  front.innerHTML = `<div class="c-corner"><div>${card.v}</div><div>${card.s}</div></div>
+                     <div class="c-center">${card.s}</div>
+                     <div class="c-corner b"><div>${card.v}</div><div>${card.s}</div></div>`;
+                     
+  const back = document.createElement('div');
+  back.className = 'c-back';
+  
+  inner.appendChild(front);
+  inner.appendChild(back);
+  cDiv.appendChild(inner);
+  return cDiv;
+}
+
+function revealCardDOM(cardEl) {
+  cardEl.classList.remove('concealed');
+  cardEl.classList.add('revealed');
+}
+
+/* ══ RIDE THE BUS LOGIC ══ */
+let rtbBet = 0, rtbPhase = 0;
+let rtbDeck = [], rtbRevealedCards = [];
+const RTB_MAX_PHASES = 4;
+
+const RTB_QUESTIONS = [
+  "Rot 🔴 oder Schwarz ⚫?",
+  "Höher ⬆ oder Niedriger ⬇ als die vorherige Karte?",
+  "Innerhalb ↔ oder Außerhalb ↕ der vorherigen Karten?",
+  "Welches Symbol? ♠ ♥ ♦ ♣"
+];
+
+function rtbUpdateHUD() {
+  document.getElementById('hud-rtb-bet').textContent = fmt(rtbBet);
+  document.getElementById('hud-rtb-bal').textContent = fmt(balances.rtb);
+}
+
+function rtbAddBet(amt) {
+  if(balances.rtb >= amt) {
+    rtbBet += amt;
+    balances.rtb -= amt;
+    rtbUpdateHUD();
+    document.getElementById('rtb-start-btn').disabled = false;
+  } else {
+    toast('Nicht genügend Guthaben!', '#cc2233');
+  }
+}
+
+function rtbClearBet() {
+  balances.rtb += rtbBet;
+  rtbBet = 0;
+  rtbUpdateHUD();
+  document.getElementById('rtb-start-btn').disabled = true;
+}
+
+function makeFreshDeck() {
+  const suits = ['♠', '♥', '♦', '♣'];
+  const vals = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+  let d = [];
+  for(let s of suits) {
+    for(let v of vals) {
+      d.push({s, v, num: vals.indexOf(v) + 2});
+    }
+  }
+  return d.sort(() => Math.random() - 0.5);
+}
+
+function rtbStart() {
+  rtbPhase = 0;
+  rtbDeck = makeFreshDeck();
+  rtbRevealedCards = [];
+  
+  document.getElementById('rtb-bet-phase').style.display = 'none';
+  document.getElementById('rtb-cards-container').innerHTML = '';
+  
+  // Create phase dots
+  let ind = document.getElementById('rtb-indicators');
+  ind.innerHTML = '';
+  for(let i=0; i<RTB_MAX_PHASES; i++) {
+    ind.innerHTML += `<div class="rtb-phase-dot" id="rtb-dot-${i}">${i+1}</div>`;
+  }
+  
+  rtbNextPhaseSetup();
+}
+
+function rtbNextPhaseSetup() {
+  if(rtbPhase >= RTB_MAX_PHASES) {
+    // Win completely
+    const winAmt = rtbBet * 4;
+    balances.rtb += winAmt;
+    toast(`Gewonnen! +${fmt(winAmt)}`, '#4de87a');
+    rtbResetToBetPhase();
+    return;
+  }
+  
+  // Highlight indicator
+  for(let i=0; i<RTB_MAX_PHASES; i++) {
+    const dot = document.getElementById(`rtb-dot-${i}`);
+    if(dot) {
+      if(i === rtbPhase) dot.className = 'rtb-phase-dot active';
+      else if(i < rtbPhase) dot.className = 'rtb-phase-dot done';
+    }
+  }
+  
+  document.getElementById('rtb-stage-lbl').textContent = `Stufe ${rtbPhase + 1}/${RTB_MAX_PHASES}`;
+  document.getElementById('rtb-question-text').textContent = RTB_QUESTIONS[rtbPhase];
+  
+  // Draw next hidden card
+  const nextCard = rtbDeck.pop();
+  rtbRevealedCards.push(nextCard);
+  
+  const container = document.getElementById('rtb-cards-container');
+  const cardDOM = createCardDOM(nextCard, true); // Create properly hidden card
+  container.appendChild(cardDOM);
+  
+  // Render answer choices
+  let btns = document.getElementById('rtb-answer-btns');
+  btns.innerHTML = '';
+  
+  if(rtbPhase === 0) {
+    btns.innerHTML = `<button class="btn btn-r" onclick="rtbGuess('red')">Rot 🔴</button>
+                      <button class="btn btn-b" onclick="rtbGuess('black')">Schwarz ⚫</button>`;
+  } else if(rtbPhase === 1) {
+    btns.innerHTML = `<button class="btn btn-g" onclick="rtbGuess('high')">Höher ⬆</button>
+                      <button class="btn btn-r" onclick="rtbGuess('low')">Niedriger ⬇</button>`;
+  } else if(rtbPhase === 2) {
+    btns.innerHTML = `<button class="btn btn-b" onclick="rtbGuess('inside')">Innerhalb ↔</button>
+                      <button class="btn btn-g" onclick="rtbGuess('outside')">Außerhalb ↕</button>`;
+  } else if(rtbPhase === 3) {
+    btns.innerHTML = `<button class="btn" onclick="rtbGuess('♠')">♠ Pik</button>
+                      <button class="btn red" onclick="rtbGuess('♥')">♥ Herz</button>
+                      <button class="btn red" onclick="rtbGuess('♦')">♦根 ♦</button>
+                      <button class="btn" onclick="rtbGuess('♣')">♣ Kreuz</button>`;
+  }
+}
+
+function rtbGuess(guess) {
+  const cards = document.getElementById('rtb-cards-container').children;
+  const currentCardDOM = cards[cards.length - 1];
+  const currentCardData = rtbRevealedCards[rtbRevealedCards.length - 1];
+  
+  revealCardDOM(currentCardDOM); // Reveal with absolute visual security
+  
+  let correct = false;
+  
+  if(rtbPhase === 0) {
+    const isCardRed = isRed(currentCardData.s);
+    correct = (guess === 'red' && isCardRed) || (guess === 'black' && !isCardRed);
+  } else if(rtbPhase === 1) {
+    const prev = rtbRevealedCards[rtbRevealedCards.length - 2];
+    if(currentCardData.num === prev.num) correct = true; // Tie favor
+    else correct = (guess === 'high' && currentCardData.num > prev.num) || (guess === 'low' && currentCardData.num < prev.num);
+  } else if(rtbPhase === 2) {
+    const v1 = rtbRevealedCards[0].num;
+    const v2 = rtbRevealedCards[1].num;
+    const min = Math.min(v1, v2);
+    const max = Math.max(v1, v2);
+    const isInside = currentCardData.num >= min && currentCardData.num <= max;
+    correct = (guess === 'inside' && isInside) || (guess === 'outside' && !isInside);
+  } else if(rtbPhase === 3) {
+    correct = currentCardData.s === guess;
+  }
+  
+  if(correct) {
+    toast('Richtig! 🎉', '#4de87a');
+    rtbPhase++;
+    setTimeout(rtbNextPhaseSetup, 1200);
+  } else {
+    document.getElementById(`rtb-dot-${rtbPhase}`).className = 'rtb-phase-dot fail';
+    toast('Falsch! Du musst zurück zum Start! 🚌', '#cc2233');
+    setTimeout(() => {
+      rtbBet = 0; // Lost the bet amount completely
+      rtbResetToBetPhase();
+    }, 1500);
+  }
+}
+
+function rtbResetToBetPhase() {
+  rtbBet = 0;
+  rtbUpdateHUD();
+  document.getElementById('rtb-bet-phase').style.display = '';
+  document.getElementById('rtb-answer-btns').innerHTML = '';
+  document.getElementById('rtb-start-btn').disabled = true;
+  document.getElementById('rtb-question-text').textContent = 'Wähle deinen Einsatz zum Starten!';
+  
+  if(balances.rtb < 10) {
+    balances.rtb = startBal;
+    toast('Pleite! Freies Startguthaben erhalten.', '#c9a84c');
+    rtbUpdateHUD();
+  }
+}
+
+
+/* ══ DOUBLE OR NOTHING LOGIC ══ */
+let donBet = 0, donPot = 0, donStreak = 0;
+const DON_MAX_STREAK = 5;
+
+function donUpdateHUD() {
+  document.getElementById('hud-don-bet').textContent = fmt(donBet);
+  document.getElementById('hud-don-bal').textContent = fmt(balances.don);
+}
+
+function donAddBet(amt) {
+  if(balances.don >= amt) {
+    donBet += amt;
+    balances.don -= amt;
+    donUpdateHUD();
+    document.getElementById('don-start-btn').disabled = false;
+  } else {
+    toast('Nicht genügend Guthaben!', '#cc2233');
+  }
+}
+
+function donClearBet() {
+  balances.don += donBet;
+  donBet = 0;
+  donUpdateHUD();
+  document.getElementById('don-start-btn').disabled = true;
+}
+
+function donRenderStreak() {
+  const container = document.getElementById('don-streak-display');
+  container.innerHTML = '';
+  for(let i=0; i<DON_MAX_STREAK; i++) {
+    let cl = 'don-streak-dot';
+    if(i < donStreak) cl += ' win';
+    else if(i === donStreak && donPot > 0) cl += ' pending';
+    container.innerHTML += `<div class="${cl}">🪙</div>`;
+  }
+}
+
+function donStart() {
+  donStreak = 0;
+  donPot = donBet * 2;
+  donBet = 0;
+  
+  document.getElementById('don-bet-phase').style.display = 'none';
+  document.getElementById('don-head-btn').disabled = false;
+  document.getElementById('don-tail-btn').disabled = false;
+  document.getElementById('don-cashout-btn').style.display = 'none';
+  
+  document.getElementById('don-stage-lbl').textContent = `Streak: 0/${DON_MAX_STREAK}`;
+  document.getElementById('don-msg').textContent = 'Kopf oder Zahl wählen!';
+  document.getElementById('don-pot-display').textContent = `Pot: ${fmt(donPot)}`;
+  
+  donRenderStreak();
+  donUpdateHUD();
+}
+
+function donFlip(choice) {
+  document.getElementById('don-head-btn').disabled = true;
+  document.getElementById('don-tail-btn').disabled = true;
+  document.getElementById('don-cashout-btn').style.display = 'none';
+  
+  const coin = document.getElementById('don-coin-element');
+  coin.classList.add('spinning');
+  
+  setTimeout(() => {
+    coin.classList.remove('spinning');
+    
+    const outcomes = ['heads', 'tails'];
+    const result = outcomes[Math.floor(Math.random() * 2)];
+    coin.textContent = (result === 'heads') ? '👑' : '🪙';
+    
+    if(choice === result) {
+      donStreak++;
+      toast('Gewonnen! Pot verdoppelt! 🎉', '#4de87a');
+      
+      if(donStreak >= DON_MAX_STREAK) {
+        // Absolute automatic maximum cashout win
+        balances.don += donPot;
+        toast(`Maximaler Streak erreicht! +${fmt(donPot)}`, '#4de87a');
+        donResetToBetPhase();
+      } else {
+        donPot *= 2;
+        document.getElementById('don-msg').textContent = 'Weiter verdoppeln oder auszahlen?';
+        document.getElementById('don-stage-lbl').textContent = `Streak: ${donStreak}/${DON_MAX_STREAK}`;
+        document.getElementById('don-pot-display').textContent = `Pot: ${fmt(donPot)}`;
+        
+        // Re-enable decision controls
+        document.getElementById('don-head-btn').disabled = false;
+        document.getElementById('don-tail-btn').disabled = false;
+        document.getElementById('don-cashout-btn').style.display = 'inline-block';
+        donRenderStreak();
+      }
+    } else {
+      toast('Verloren! Der Pot ist weg. ❌', '#cc2233');
+      donPot = 0;
+      setTimeout(donResetToBetPhase, 1500);
+    }
+  }, 1200);
+}
+
+function donCashout() {
+  balances.don += donPot;
+  toast(`Ausgezahlt! +${fmt(donPot)}`, '#4de87a');
+  donResetToBetPhase();
+}
+
+function donResetToBetPhase() {
+  donBet = 0;
+  donPot = 0;
+  donStreak = 0;
+  
+  document.getElementById('don-bet-phase').style.display = '';
+  document.getElementById('don-head-btn').disabled = true;
+  document.getElementById('don-tail-btn').disabled = true;
+  document.getElementById('don-cashout-btn').style.display = 'none';
+  
+  document.getElementById('don-stage-lbl').textContent = 'Streak: 0/5';
+  document.getElementById('don-pot-display').textContent = 'Pot: $ 0';
+  document.getElementById('don-msg').textContent = 'Setze einen Betrag und wirf die Münze!';
+  document.getElementById('don-coin-element').textContent = '🪙';
+  
+  donRenderStreak();
+  donUpdateHUD();
+  
+  if(balances.don < 10) {
+    balances.don = startBal;
+    toast('Guthaben erneuert!', '#c9a84c');
+    donUpdateHUD();
+  }
+}
+
+
+/* ══ FLAPPY BIRD CASINO ENGINE ══ */
+let canvas, ctx;
+let flappyBird = { y: 200, velocity: 0 };
+let flappyPipes = [];
+let flappyScore = 0;
+let flappyGameState = 'idle'; // idle, playing, gameover
+let flappyLoopId = null;
+
+// Adjusted highly comfortable mechanics variables
+const FB_GRAVITY = 0.28;        // Slower falling velocity
+const FB_FLAP = -5.2;          // Smooth gentle jump jump strength
+const FB_PIPE_SPEED = 1.6;     // Very steady manageable approach speed
+const FB_PIPE_SPACING = 160;   // Generous timing space between tubes
+const FB_GAP = 145;            // Massive comfortable passage gap
+
+function flappyUpdateHUD() {
+  document.getElementById('hud-flappy-bal').textContent = fmt(balances.flappy);
+}
+
+function flappyInitEngine() {
+  canvas = document.getElementById('flappy-canvas');
+  if(!canvas) return;
+  ctx = canvas.getContext('2d');
+  
+  // Set dimensions correctly
+  canvas.width = 440;
+  canvas.height = 400;
+  
+  // Draw initial preview background scene
+  flappyRenderScene();
+  
+  // Listener interface
+  window.removeEventListener('keydown', flappyInputHandler);
+  window.addEventListener('keydown', flappyInputHandler);
+  canvas.removeEventListener('touchstart', flappyTouchHandler);
+  canvas.addEventListener('touchstart', flappyTouchHandler);
+}
+
+function flappyInputHandler(e) {
+  if(e.code === 'Space') {
+    e.preventDefault();
+    flappyTriggerFlap();
+  }
+}
+
+function flappyTouchHandler(e) {
+  e.preventDefault();
+  flappyTriggerFlap();
+}
+
+function flappyTriggerFlap() {
+  if(flappyGameState === 'playing') {
+    flappyBird.velocity = FB_FLAP;
+  }
+}
+
+function flappyStartGame() {
+  if(balances.flappy < 25) {
+    toast('Nicht genügend Guthaben ($25 benötigt)!', '#cc2233');
+    return;
+  }
+  
+  // Withdraw plane execution fare
+  balances.flappy -= 25;
+  flappyUpdateHUD();
+  
+  // Reset engine variables
+  flappyBird.y = 180;
+  flappyBird.velocity = 0;
+  flappyPipes = [];
+  flappyScore = 0;
+  flappyGameState = 'playing';
+  
+  document.getElementById('flappy-overlay').style.display = 'none';
+  document.getElementById('flappy-score-live').textContent = `Score: 0 | Gewinn: $0`;
+  
+  // Fire initial pipe stack safely down the road
+  flappySpawnPipe(400);
+  
+  if(flappyLoopId) cancelAnimationFrame(flappyLoopId);
+  flappyTick();
+}
+
+function flappySpawnPipe(startX) {
+  const minH = 50;
+  const maxH = canvas.height - FB_GAP - minH;
+  const topH = Math.floor(Math.random() * (maxH - minH + 1)) + minH;
+  
+  flappyPipes.push({
+    x: startX,
+    topHeight: topH,
+    passed: false
+  });
+}
+
+function flappyTick() {
+  if(flappyGameState !== 'playing') return;
+  
+  // Game Logic Physics
+  flappyBird.velocity += FB_GRAVITY;
+  flappyBird.y += flappyBird.velocity;
+  
+  // Roof / Floor limits
+  if(flappyBird.y < 0) flappyBird.y = 0;
+  if(flappyBird.y > canvas.height - 14) {
+    flappyGameOver();
+    return;
+  }
+  
+  // Pipe orchestration management
+  if(flappyPipes.length > 0 && flappyPipes[flappyPipes.length - 1].x < canvas.width - FB_PIPE_SPACING) {
+    flappySpawnPipe(canvas.width);
+  }
+  
+  // Move and filter pipes
+  for(let i = flappyPipes.length - 1; i >= 0; i--) {
+    let p = flappyPipes[i];
+    p.x -= FB_PIPE_SPEED;
+    
+    // Check points score qualification
+    if(!p.passed && p.x + 45 < 100) {
+      p.passed = true;
+      flappyScore++;
+      balances.flappy += 10; // Instantly reward casino player
+      flappyUpdateHUD();
+      document.getElementById('flappy-score-live').textContent = `Score: ${flappyScore} | Gewinn: $${flappyScore * 10}`;
+    }
+    
+    // Hit collision boundary inspection
+    if(p.x < 120 && p.x + 45 > 80) { // Box overlap metrics
+      if(flappyBird.y < p.topHeight || flappyBird.y + 14 > p.topHeight + FB_GAP) {
+        flappyGameOver();
+        return;
+      }
+    }
+  }
+  
+  // Delete offscreen pipes
+  flappyPipes = flappyPipes.filter(p => p.x > -60);
+  
+  // Render
+  flappyRenderScene();
+  flappyLoopId = requestAnimationFrame(flappyTick);
+}
+
+function flappyRenderScene() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Render Background Grid Atmosphere
+  ctx.fillStyle = 'rgba(201, 168, 76, 0.04)';
+  for(let i=0; i<canvas.width; i+=20) ctx.fillRect(i, 0, 1, canvas.height);
+  
+  // Render Obstacle Pipes
+  flappyPipes.forEach(p => {
+    ctx.fillStyle = '#1a6a3a';
+    ctx.strokeStyle = 'var(--gold)';
+    ctx.lineWidth = 2;
+    
+    // Top Obstacle Column
+    ctx.fillRect(p.x, 0, 45, p.topHeight);
+    ctx.strokeRect(p.x, -5, 45, p.topHeight + 5);
+    
+    // Bottom Obstacle Column
+    const botY = p.topHeight + FB_GAP;
+    ctx.fillRect(p.x, botY, 45, canvas.height - botY);
+    ctx.strokeRect(p.x, botY, 45, canvas.height - botY + 5);
+  });
+  
+  // Render Active Bird Character Token
+  ctx.fillStyle = 'var(--gold-l)';
+  ctx.beginPath();
+  ctx.arc(100, flappyBird.y, 9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  
+  // Wing visual design detail accent
+  ctx.fillStyle = 'var(--gold-d)';
+  ctx.beginPath();
+  ctx.arc(96, flappyBird.y + 2, 4, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function flappyGameOver() {
+  flappyGameState = 'gameover';
+  if(flappyLoopId) cancelAnimationFrame(flappyLoopId);
+  
+  const totalEarned = flappyScore * 10;
+  toast(`Bruchlandung! Ertrag: +$${totalEarned}`, '#cc2233');
+  
+  // Prompt menu interface restoration overlay
+  const overlay = document.getElementById('flappy-overlay');
+  overlay.style.display = 'flex';
+  
+  document.getElementById('flappy-action-btn').textContent = `Erneut Fliegen ($25)`;
+  
+  if(balances.flappy < 25) {
+    balances.flappy = startBal;
+    toast('Konto refreshed!', '#c9a84c');
+    flappyUpdateHUD();
+  }
+}
+</script>
+</body>
+</html>
